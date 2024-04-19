@@ -115,7 +115,7 @@ class _HomeBusState extends State<HomeBus> {
                               "images/308.png",
                               height: 50,
                             ),
-     MaterialButton(
+  MaterialButton(
   color: Color(0xFFFFCA20),
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(15.0)),
@@ -125,39 +125,34 @@ class _HomeBusState extends State<HomeBus> {
     "add",
     style: TextStyle(color: Color(0xFF25243A), fontSize: 17.0),
   ),
-onPressed: () async {
-  final selectedStation = await Navigator.of(context).pushNamed(
-    "/Attribuer",
-  );
-  // Handle the selected station here
-  if (selectedStation != null) {
-    // Get the existing nomstation
-    var existingNomStationSnapshot = await FirebaseFirestore.instance.collection("bus").doc(data[i].id).get();
-    List<String> existingNomStation = (existingNomStationSnapshot.data()?['nomstation'] as String?)?.split(", ") ?? [];
-    // Convert selectedStation to String
-    String newStation = selectedStation.toString();
-    // Append the new selected station to the existing list
-    existingNomStation.add(newStation);
-    // Join the list back into a single string
-    String updatedNomStation = existingNomStation.join(", ");
-    // Update the current document in Firestore with the updated nomstation
-    await FirebaseFirestore.instance.collection("bus").doc(data[i].id).update({
-      'nomstation': updatedNomStation,
-    });
-
-    // Show the number of nomstations added
-    int numberOfNomStationsAdded = existingNomStation.length;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Number of nomstations added: $numberOfNomStationsAdded'),
-        duration: Duration(seconds: 2), // Adjust the duration as needed
-      ),
+  onPressed: () async {
+    final selectedStations = await Navigator.of(context).pushNamed(
+      "/Attribuer",
     );
-  }
-},
 
+    if (selectedStations != null && selectedStations is List<String>) {
+      // Convert the selectedStations to a list of strings
+      List<String> newStations = List<String>.from(selectedStations);
 
+      // Update the current document in Firestore by appending the new stations to the existing list
+      await FirebaseFirestore.instance.collection("bus").doc(data[i].id).update({
+        'nomstation': FieldValue.arrayUnion(newStations),
+      });
+
+      // Show a SnackBar with the added stations
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Nomstations added: ${newStations}'),
+          duration: Duration(seconds: 2), // Adjust the duration as needed
+        ),
+      );
+      
+      // Refresh data to reflect changes
+   
+    }
+  },
 ),
+
 
 
 
