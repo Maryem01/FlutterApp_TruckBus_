@@ -62,7 +62,7 @@ SharedPreferences prefs = await SharedPreferences.getInstance();
       currentUser = FirebaseAuth.instance.currentUser;
 
       if (currentUser != null && currentUser.phoneNumber != null) {
-        initialRoute = loginScreen;
+        initialRoute = mapScreen;
         prefs.setString('userId', user.uid);
       } else {
         String userRole = await getUserRole(user.uid);
