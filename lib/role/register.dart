@@ -33,7 +33,7 @@ class _RegisterState extends State<Register> {
 
   var options = [
     'Admin',
-    'SuperAdmin',
+    'Client',
   ];
   Color getRadioButtonColor(Set<MaterialState> states) {
     // If the radio button is selected, return yellow, else return blue
@@ -67,7 +67,7 @@ class _RegisterState extends State<Register> {
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
                 ),
-                color: Color(0xFFFF5722),
+                color:  Color(0xFF25243A),
                 border: Border(
                   left: BorderSide(
                     width: 3,
@@ -85,7 +85,7 @@ class _RegisterState extends State<Register> {
                           "Get Started",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(192, 255, 255, 255),
+                            color: Colors.orange[800],
                             fontSize: 40,
                           ),
                         ),
@@ -94,6 +94,7 @@ class _RegisterState extends State<Register> {
                         ),
                         TextFormField(
                           controller: emailController,
+                          
                           decoration: InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'E-mail',
@@ -108,7 +109,7 @@ class _RegisterState extends State<Register> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFFFFCA20)),
+                              borderSide: BorderSide(color: Color(0xFFEF6C00)),
                               borderRadius: BorderRadius.circular(5),
                             ),
                           ),
@@ -147,7 +148,7 @@ class _RegisterState extends State<Register> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFFFFCA20)),
+                              borderSide: BorderSide(color: Color(0xFFEF6C00)),
                               borderRadius: BorderRadius.circular(5),
                             ),
                             suffixIcon: IconButton(
@@ -195,7 +196,7 @@ class _RegisterState extends State<Register> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 242, 242, 242)),
+                                  color: Color(0xFFEF6C00) ),
                               borderRadius: BorderRadius.circular(5),
                             ),
                             suffixIcon: IconButton(
@@ -334,7 +335,7 @@ class _RegisterState extends State<Register> {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var user = _auth.currentUser;
 
-    // Reference the "users" collection and add a document to it
+    
     CollectionReference ref = FirebaseFirestore.instance.collection('users');
     ref.doc(user!.uid).set({'email': email, 'rool': rool});
 

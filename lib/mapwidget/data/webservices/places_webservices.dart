@@ -25,7 +25,7 @@ class PlacesWebservices {
         queryParameters: {
           'input': place,
           'types': 'address',
-          'components': 'country:eg',
+          'components': 'country:tn',
           'key': googleAPIKey,
           'sessiontoken': sessionToken
         },

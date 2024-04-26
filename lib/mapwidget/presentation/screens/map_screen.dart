@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/mapwidget/business_logic/cubit/maps/maps_cubit.dart';
@@ -46,6 +47,10 @@ class _MapScreenState extends State<MapScreen> {
   late Marker searchedPlaceMarker;
   late Marker currentLocationMarker;
   late CameraPosition goToSearchedForPlace;
+  late final Timer _debounce;
+  List<String> stationNames = [];
+  final FocusNode locationFocusNode = FocusNode();
+  FocusNode destinationLocationFocusNode = FocusNode();
 
   void buildCameraNewPosition() {
     goToSearchedForPlace = CameraPosition(
@@ -72,6 +77,8 @@ class _MapScreenState extends State<MapScreen> {
   initState() {
     super.initState();
     getMyCurrentLocation();
+    _goToMyCurrentLocation();
+    fetchStationNames();
   }
 
   Future<void> getMyCurrentLocation() async {
@@ -105,9 +112,28 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _goToMyCurrentLocation() async {
-    final GoogleMapController controller = await _mapController.future;
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(_myCurrentLocationCameraPosition));
+    // Get the current position
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    // Update the query of the FloatingSearchBar with the current location
+    String currentLocation =
+        'Lat: ${position.latitude}, Lng: ${position.longitude}';
+    controller.query = currentLocation;
+  }
+
+  final TextEditingController destinationLocationController =
+      TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  // Variable to control visibility of additional text field
+  bool showAdditionalTextField = false;
+
+  // Method to toggle visibility of additional text field
+  void toggleAdditionalTextFieldVisibility() {
+    setState(() {
+      showAdditionalTextField = !showAdditionalTextField;
+    });
   }
 
   Widget buildFloatingSearchBar() {
@@ -119,11 +145,12 @@ class _MapScreenState extends State<MapScreen> {
       elevation: 6,
       hintStyle: TextStyle(fontSize: 18),
       queryStyle: TextStyle(fontSize: 18),
-      hint: 'Find a place..',
-      border: BorderSide(style: BorderStyle.none),
+      hint: 'current location..',
+      borderRadius: BorderRadius.circular(24),
       margins: EdgeInsets.fromLTRB(20, 70, 20, 0),
       padding: EdgeInsets.fromLTRB(2, 0, 2, 0),
-      height: 52,
+      height: 49,
+      backgroundColor: Color.fromARGB(255, 226, 222, 222),
       iconColor: MyColors.blue,
       scrollPadding: const EdgeInsets.only(top: 16, bottom: 56),
       transitionDuration: const Duration(milliseconds: 600),
@@ -134,9 +161,6 @@ class _MapScreenState extends State<MapScreen> {
       width: isPortrait ? 600 : 500,
       debounceDelay: const Duration(milliseconds: 500),
       progress: progressIndicator,
-      onQueryChanged: (query) {
-        getPlacesSuggestions(query);
-      },
       onFocusChanged: (_) {
         // hide distance and time row
         setState(() {
@@ -148,23 +172,63 @@ class _MapScreenState extends State<MapScreen> {
         FloatingSearchBarAction(
           showIfOpened: false,
           child: CircularButton(
-              icon: Icon(Icons.place, color: Colors.black.withOpacity(0.6)),
-              onPressed: () {}),
+            icon: Icon(Icons.place,
+                color: Color.fromARGB(255, 150, 10, 108).withOpacity(0.6)),
+            onPressed: () {
+              _goToMyCurrentLocation();
+
+              // Set the text in both the search bar and the text field
+              controller.query = 'Current Location';
+              locationController.text = '';
+              toggleAdditionalTextFieldVisibility();
+
+              // Request focus for the location text field
+              FocusScope.of(context).requestFocus(locationFocusNode);
+            },
+          ),
         ),
       ],
       builder: (context, transition) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              buildSuggestionsBloc(),
-              buildSelectedPlaceLocationBloc(),
-              buildDiretionsBloc(),
-            ],
-          ),
         );
+      },
+    );
+  }
+
+  Widget Bloc() {
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+
+    return TextField(
+      controller: locationController,
+      decoration: InputDecoration(
+        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+        filled: true,
+        fillColor: Color.fromARGB(255, 226, 222, 222),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+      ),
+      focusNode: locationFocusNode,
+      onTap: () async {
+        QuerySnapshot querySnapshot =
+            await FirebaseFirestore.instance.collection("station").get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          String stationName = querySnapshot.docs[0]['nomstation'];
+          String latitude = querySnapshot.docs[0]['latitude'];
+          String longitude = querySnapshot.docs[0]['longtude'];
+
+          locationController.text =
+              'Station: $stationName\nLatitude: $latitude\nLongitude: $longitude';
+        } else {}
       },
     );
   }
@@ -180,6 +244,16 @@ class _MapScreenState extends State<MapScreen> {
       },
       child: Container(),
     );
+  }
+
+  void fetchStationNames() async {
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('station').get();
+    setState(() {
+      stationNames = snapshot.docs
+          .map((doc) => "${doc['nomstation']} (ID: ${doc.id})")
+          .toList();
+    });
   }
 
   void getPolylinePoints() {
@@ -286,7 +360,7 @@ class _MapScreenState extends State<MapScreen> {
               controller.close();
               getSelectedPlaceLocation();
               polylinePoints.clear();
-               removeAllMarkersAndUpdateUI();
+              removeAllMarkersAndUpdateUI();
             },
             child: PlaceItem(
               suggestion: places[index],
@@ -327,12 +401,21 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
           buildFloatingSearchBar(),
+
+          // New method call added here
           isSearchedPlaceMarkerClicked
               ? DistanceAndTime(
                   isTimeAndDistanceVisible: isTimeAndDistanceVisible,
                   placeDirections: placeDirections,
                 )
               : Container(),
+          Positioned(
+            top:
+                130, // Adjust this value to position the Bloc widget closer to the bottom
+            left: 20,
+            right: 20,
+            child: Bloc(),
+          ),
         ],
       ),
       floatingActionButton: Container(

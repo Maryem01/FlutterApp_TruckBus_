@@ -5,8 +5,7 @@ import 'package:flutter_app/bus/addbus.dart';
 import 'package:flutter_app/mapwidget/presentation/screens/map_screen.dart';
 import 'package:flutter_app/mapwidget/presentation/screens/otp_screen.dart';
 import 'package:flutter_app/view/dashboard/dashboard_screen.dart';
-import 'Student.dart';
-import 'Teacher.dart';
+
 import 'register.dart';
 
 class LoginUser extends StatefulWidget {
@@ -190,7 +189,7 @@ class _LoginUserState extends State<LoginUser> {
     );
   }
 
-  void route() {
+   void route() {
     User? user = FirebaseAuth.instance.currentUser;
     var kk = FirebaseFirestore.instance
         .collection('users')

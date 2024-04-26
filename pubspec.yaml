@@ -58,6 +58,7 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   flutter_search_bar: ^3.0.0
   flutter_polyline_points: ^2.0.0
+  shared_preferences: ^2.2.3
 
   
 
@@ -99,6 +100,7 @@ flutter:
     - images/309.png
     - images/logo.png
     - images/logoregister.png
+    - images/otp.png
 
   #   - images/a_dot_ham.jpeg
 

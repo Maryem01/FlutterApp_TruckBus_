@@ -92,11 +92,17 @@ getData() async{
                desc: 'Voulez-vous vraiment modifier ou supprimer ce bus?',
                btnCancelText: "Supprimer" ,
                btnOkText: "Modifier",
-               btnCancelOnPress: ()  async {
-               await FirebaseFirestore.instance.collection("station").doc(data [i].id).delete();
-               Navigator.of(context).pushReplacementNamed("/HomeStaion");
-               },
-               btnOkOnPress: () async {
+              btnCancelOnPress: () async {
+                              await FirebaseFirestore.instance
+                                  .collection("station")
+                                  .doc(data[i].id)
+                                  .delete();
+                              Navigator.of(context)
+                                  .pushReplacementNamed("/HomeStation");
+                            },
+                            btnOkOnPress: () async {
+                             
+        
                 Navigator.of(context)
                 .push(MaterialPageRoute(builder: (context) => EditStation(
                   docid: data[i].id,

@@ -14,7 +14,6 @@ import 'package:flutter_app/station/view-station.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 class AccueilAdmin extends StatefulWidget {
   const AccueilAdmin({super.key});
   State<AccueilAdmin> createState() => _AccueilAdminState();
@@ -70,7 +69,101 @@ class _AccueilAdminState extends State<AccueilAdmin> {
                 )
           ],
         ),
-      
+       drawer: Drawer(
+          
+          backgroundColor: Color(0xFF25243a),
+          child: ListView(
+            children: [
+             
+                 Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                   Image.asset(
+                                  "images/logo.png",
+                                 width: 400,
+                                ),
+                   
+                  ],
+                ),
+            
+
+              Divider(
+              color: Color.fromARGB(255, 190, 189, 188)
+            ),
+            SizedBox(height: 30),
+              ListTile(
+                onTap: () {
+                  Get.to(HomeAdmin());
+                },
+                leading: Icon(
+                  Icons.home,
+                  color: Color(0xFFffd400),
+                ),
+                title: Text(
+                  'Menu',
+                  style: TextStyle(
+                      color: Color(0xFFffd400), fontSize: 24),
+                ),
+               
+              ),
+              
+
+               
+               
+                
+               
+                
+                ListTile(
+                  onTap: (){ Navigator.of(context).pushNamedAndRemoveUntil("/HomeStation", (route) => false);},
+                  leading: Icon(Icons.mail, color:Color.fromARGB(255, 88, 88, 88)),
+                  
+                  title: Text('Notifications', style: TextStyle(
+                      color: Color.fromARGB(255, 240, 237, 237), fontSize: 17),),
+                ),
+               
+                
+               ListTile(
+                  onTap: (){ Navigator.of(context).pushNamedAndRemoveUntil("/HomeParcours", (route) => false);},
+                 leading: Icon(Icons.share, color:Color.fromARGB(255, 88, 88, 88)),
+                  title: Text('Parlez-en à vos amis', style: TextStyle(
+                     color: Color.fromARGB(255, 240, 237, 237), fontSize: 17),),
+                ),
+                 ListTile(
+                  onTap: (){ Navigator.of(context).pushNamedAndRemoveUntil("/HomeParcours", (route) => false);},
+leading: Icon(Icons.star, color:Color.fromARGB(255, 88, 88, 88)),
+                  title: Text('Notez-nous', style: TextStyle(
+                      color: Color.fromARGB(255, 240, 237, 237), fontSize: 17),),
+                ),
+                 ListTile(
+                  onTap: (){ Navigator.of(context).pushNamedAndRemoveUntil("/HomeParcours", (route) => false);},
+                leading: Icon(Icons.settings, color:Color.fromARGB(255, 88, 88, 88)),
+                  title: Text('Paramètres', style: TextStyle(
+                      color: Color.fromARGB(255, 240, 237, 237), fontSize: 17),),
+                ),
+                  ListTile(
+                  onTap: (){ Navigator.of(context).pushNamedAndRemoveUntil("/HomeParcours", (route) => false);},
+                 leading: Icon(Icons.help, color:Color.fromARGB(255, 88, 88, 88)),
+                  title: Text('Aide & Services Client', style: TextStyle(
+                      color: Color.fromARGB(255, 240, 237, 237), fontSize: 17),),
+                ),
+              ListTile(
+                onTap: () {
+                  Get.to(LoginPage());
+                },
+                leading: Icon(
+                  Icons.exit_to_app,
+                  color:Color(0xFFffd400)
+                ),
+                title: Text(
+                  'Déconnexion',
+                  style: TextStyle(
+                      color: Color(0xFFffd400), fontSize: 17),
+                ),
+              ),
+            ],
+          ),
+        ),
         body: WillPopScope(
           child: isLoading == true
               ? Center(

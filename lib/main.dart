@@ -35,67 +35,76 @@ import 'package:flutter_app/auth/signup_admin.dart';
 import 'package:get/get.dart';
 import 'mapwidget/constnats/strings.dart';
 import 'mapwidget/app_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-   late String initialRoute;
+late String initialRoute;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(   options:FirebaseOptions(
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
       apiKey: "AIzaSyAtrv9RvhCFSzO9QA3VbCsg0SSuN8yy_EM",
       appId: "1:478912769142:android:3b8d047fbbd19072c94357",
       messagingSenderId: "478912769142",
       projectId: "flutterapp-6a28d",
-    ),);
+    ),
+  );
+SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? userId = prefs.getString('userId');
+  initialRoute = userId != null ? mapScreen : loginScreen;
 
-  FirebaseAuth.instance.authStateChanges().listen((user) async {
+  FirebaseAuth.instance.authStateChanges().listen((User? user) async {
     if (user == null) {
       initialRoute = loginScreen;
     } else {
-      // Retrieve user's role from Firestore
-      String userRole = await getUserRole(user.uid);
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      await currentUser!.reload();
+      currentUser = FirebaseAuth.instance.currentUser;
 
-      // Set initialRoute based on user's role
-      if (userRole == "Admin") {
-        initialRoute = bus;
+      if (currentUser != null && currentUser.phoneNumber != null) {
+        initialRoute = mapScreen;
+        prefs.setString('userId', user.uid);
       } else {
-        initialRoute = bus;
+        String userRole = await getUserRole(user.uid);
+
+        if (userRole == "Admin") {
+          initialRoute = bus;
+        } else {
+          initialRoute = bus;
+        }
       }
     }
-    runApp(
-      MyApp(
-        appRouter: AppRouter(),
-        initialRoute: initialRoute,
-      ),
-    );
-  });
+
+  runApp(
+    MyApp(
+      appRouter: AppRouter(),
+      initialRoute: initialRoute,
+    ),
+  );
+});
+
 }
 
 Future<String> getUserRole(String userId) async {
-  String role = "user"; // Default role
+  String role = "user";
   try {
-    // Query Firestore to get user's role
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .get();
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
 
     if (userDoc.exists) {
-      // Explicitly cast userDoc.data() to Map<String, dynamic>
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
-      // Check if 'role' field exists in the document
-     if (userData != null && userData.containsKey('rool') && userData.containsKey('email')) {
+      if (userData != null &&
+          userData.containsKey('rool') &&
+          userData.containsKey('email')) {
         role = userData['rool'];
       }
-
-      
     }
   } catch (e) {
     print("Error fetching user role: $e");
   }
   return role;
 }
-
 
 class MyApp extends StatelessWidget {
   final AppRouter appRouter;
@@ -118,5 +127,5 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: appRouter.generateRoute,
       initialRoute: initialRoute,
     );
-  }
+  } 
 }

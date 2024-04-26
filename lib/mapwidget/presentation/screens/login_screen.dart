@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_app/mapwidget/business_logic/cubit/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_app/mapwidget/constnats/my_colors.dart';
 import 'package:flutter_app/mapwidget/constnats/strings.dart';
 
-// ignore: must_be_immutable
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
 
@@ -28,36 +26,36 @@ class LoginScreen extends StatelessWidget {
         child: RichText(
                                         text: TextSpan(
                                           children: [
-                                            TextSpan(
-                                              text: '      Make My',
-                                              style: TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.bold,
-                                                color:   Color(0xFF25243A ),
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: ' Route\n \n',
-                                              style: TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.bold,
-                                              color: Colors.orange[800],
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: 'No more Waiting',
-                                              style: TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.bold,
-                                                color:  Color(0xFF25243A),
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: ' For Bus',
-                                              style: TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.orange[800],
+                                           TextSpan(
+                  text: 'Planifiez votre trajet',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF25243A),
+                  ),
+                ),
+                TextSpan(
+                  text: ' sans perdre de temps\n \n',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[800],
+                  ),
+                ),
+                TextSpan(
+                  text: 'à attendre',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF25243A),
+                  ),
+                ),
+                TextSpan(
+                  text: ' le bus',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[800],
                                               ),
                                             ),
                                           ],
@@ -74,7 +72,7 @@ class LoginScreen extends StatelessWidget {
         Expanded(
           flex: 1,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 14),
             decoration: BoxDecoration(
               border: Border.all( color: Color(0xFF25243A)),
               borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -90,7 +88,7 @@ class LoginScreen extends StatelessWidget {
           flex: 2,
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
            
             child: TextFormField(
               
@@ -187,7 +185,7 @@ class LoginScreen extends StatelessWidget {
         height: 45,
               
               child: Text("Sauvegarder",  style: TextStyle(color : Color(0xFF25243A ),fontSize: 17.0, )),*/
-        child: Text("Get Your Otp",  style: TextStyle(color : Color.fromARGB(255, 247, 247, 248),fontSize: 18.0, )),
+        child: Text("Envoyer un code",  style: TextStyle(color : Color.fromARGB(255, 247, 247, 248),fontSize: 18.0, )),
           
         
       ),
@@ -203,32 +201,38 @@ class LoginScreen extends StatelessWidget {
       
       child: TextButton(
         onPressed: () {
-          // Navigate to other component
+          
           navigateToOtherComponent(context);
           
         },
 
-       child: RichText(
-                                        text: TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text: 'S\'inscrire  ? ',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color:  Color(0xFF25243A ),
-                                              ),
+       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+         children: [
+           RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: 'Se connecter en tant',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color:  Color(0xFF25243A ),
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: ' qu\'administrateur ? ',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.orange[800],
+                                                  ),
+                                                ),
+                                               
+                                              ],
                                             ),
-                                            TextSpan(
-                                              text: 'se connecter',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.orange[800],
-                                              ),
-                                            ),
-                                           
-                                          ],
-                                        ),
-                                      ),
+                                          ),
+         ],
+       ),
                                       
       ),
       
@@ -293,37 +297,34 @@ class LoginScreen extends StatelessWidget {
    return SafeArea(
   child: Scaffold(
     backgroundColor: Color.fromARGB(255, 244, 244, 244),
-    body: SingleChildScrollView(
+    body: Padding(
+       padding: const EdgeInsets.only(right: 40.0, left: 40,),
       child: Form(
         key: _phoneFormKey,
-        child: Container(
-          margin: EdgeInsets.symmetric(horizontal: 72, vertical: 72),
+       
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildIntroTexts(),
               SizedBox(
-                height: 75,
+                height: 20,
               ),
               _buildPhoneFormField(),
               SizedBox(
-                height: 30,
+                height: 20,
               ),
               _buildNextButton(context),
               SizedBox(
-                height: 30,
+                height: 20,
               ),
               _buildPhoneNumberSubmitedBloc(),
               _buildOtherComponentButton(context),
              
-              Image.asset(
-                "images/logoregister.png",
-                width: 200,
-                height: 350,
-              ),
+              
             ],
           ),
-        ),
+        
       ),
     ),
   ),
@@ -331,4 +332,3 @@ class LoginScreen extends StatelessWidget {
 
   }
 }
-

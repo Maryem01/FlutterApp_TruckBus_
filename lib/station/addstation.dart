@@ -85,7 +85,7 @@ AddStation() async{
                                 style: TextStyle(
                                     fontSize: 23,
                                     fontWeight: FontWeight.bold,
-                                    color:  Color(0xFF25243A))),
+                                    color:  Color(0xFF25243))),
                           ),
                           SizedBox(
                               height:
