@@ -123,9 +123,9 @@ class _MapScreenState extends State<MapScreen> {
     controller.query = currentLocation;
   }
 
-  final TextEditingController destinationLocationController =
-      TextEditingController();
+
   final TextEditingController locationController = TextEditingController();
+  final TextEditingController destinationController = TextEditingController();
   // Variable to control visibility of additional text field
   bool showAdditionalTextField = false;
 
@@ -175,14 +175,11 @@ class _MapScreenState extends State<MapScreen> {
             icon: Icon(Icons.place,
                 color: Color.fromARGB(255, 150, 10, 108).withOpacity(0.6)),
             onPressed: () {
-              _goToMyCurrentLocation();
-
               // Set the text in both the search bar and the text field
               controller.query = 'Current Location';
               locationController.text = '';
+              // Toggle visibility of additional text field
               toggleAdditionalTextFieldVisibility();
-
-              // Request focus for the location text field
               FocusScope.of(context).requestFocus(locationFocusNode);
             },
           ),
@@ -191,6 +188,43 @@ class _MapScreenState extends State<MapScreen> {
       builder: (context, transition) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildSuggestionsBloc(),
+              buildSelectedPlaceLocationBloc(),
+              buildDiretionsBloc(),
+              Padding(
+                padding: const EdgeInsets.only(top:50.0),
+                child: Visibility(
+                  visible: showAdditionalTextField,
+                  child: TextField(
+                    controller: locationController,
+                    focusNode: locationFocusNode,
+                    onChanged: (query) {
+                      getPlacesSuggestions(query);
+                    },
+                   decoration: InputDecoration(
+                     hintText: 'Your List',
+        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+        filled: true,
+        fillColor: Color.fromARGB(255, 226, 222, 222),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+      )
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -201,8 +235,9 @@ class _MapScreenState extends State<MapScreen> {
         MediaQuery.of(context).orientation == Orientation.portrait;
 
     return TextField(
-      controller: locationController,
+      controller: destinationController,
       decoration: InputDecoration(
+         hintText: 'Your Destination',
         hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
         contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
         filled: true,
@@ -216,7 +251,7 @@ class _MapScreenState extends State<MapScreen> {
           borderSide: BorderSide(color: Colors.grey),
         ),
       ),
-      focusNode: locationFocusNode,
+      focusNode: destinationLocationFocusNode,
       onTap: () async {
         QuerySnapshot querySnapshot =
             await FirebaseFirestore.instance.collection("station").get();
@@ -226,12 +261,13 @@ class _MapScreenState extends State<MapScreen> {
           String latitude = querySnapshot.docs[0]['latitude'];
           String longitude = querySnapshot.docs[0]['longtude'];
 
-          locationController.text =
+          destinationController.text =
               'Station: $stationName\nLatitude: $latitude\nLongitude: $longitude';
         } else {}
       },
     );
   }
+  
 
   Widget buildDiretionsBloc() {
     return BlocListener<MapsCubit, MapsState>(
@@ -414,7 +450,7 @@ class _MapScreenState extends State<MapScreen> {
                 130, // Adjust this value to position the Bloc widget closer to the bottom
             left: 20,
             right: 20,
-            child: Bloc(),
+           child: Bloc(),
           ),
         ],
       ),
