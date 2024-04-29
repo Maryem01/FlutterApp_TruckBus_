@@ -27,6 +27,7 @@ import 'constnats/strings.dart';
 import 'data/repository/maps_repo.dart';
 import 'data/webservices/places_webservices.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/locationfirestore.dart';
 
 class AppRouter {
   PhoneAuthCubit? phoneAuthCubit;
@@ -148,6 +149,12 @@ class AppRouter {
          return MaterialPageRoute(
           builder: (_) =>  Attribuer(),
         );
+   case mapSation:
+         return MaterialPageRoute(
+          builder: (_) =>  StationsMap(),
+        );
+
+        
         
     }
   }

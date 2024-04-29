@@ -70,8 +70,12 @@ class _MapScreenState extends State<MapScreen> {
   late List<LatLng> polylinePoints;
   var isSearchedPlaceMarkerClicked = false;
   var isTimeAndDistanceVisible = false;
+
+  List<String> selectedStations = [];
   late String time;
   late String distance;
+  
+
 
   @override
   initState() {
@@ -86,6 +90,8 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {});
     });
   }
+
+
 
   Widget buildMap() {
     return GoogleMap(
@@ -122,7 +128,6 @@ class _MapScreenState extends State<MapScreen> {
         'Lat: ${position.latitude}, Lng: ${position.longitude}';
     controller.query = currentLocation;
   }
-
 
   final TextEditingController locationController = TextEditingController();
   final TextEditingController destinationController = TextEditingController();
@@ -196,31 +201,31 @@ class _MapScreenState extends State<MapScreen> {
               buildSelectedPlaceLocationBloc(),
               buildDiretionsBloc(),
               Padding(
-                padding: const EdgeInsets.only(top:50.0),
+                padding: const EdgeInsets.only(top: 50.0),
                 child: Visibility(
                   visible: showAdditionalTextField,
                   child: TextField(
-                    controller: locationController,
-                    focusNode: locationFocusNode,
-                    onChanged: (query) {
-                      getPlacesSuggestions(query);
-                    },
-                   decoration: InputDecoration(
-                     hintText: 'Your List',
-        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-        filled: true,
-        fillColor: Color.fromARGB(255, 226, 222, 222),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(color: Colors.grey),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(color: Colors.grey),
-        ),
-      )
-                  ),
+                      controller: locationController,
+                      focusNode: locationFocusNode,
+                      onChanged: (query) {
+                        getPlacesSuggestions(query);
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Your List',
+                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+                        filled: true,
+                        fillColor: Color.fromARGB(255, 226, 222, 222),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                      )),
                 ),
               ),
             ],
@@ -234,40 +239,58 @@ class _MapScreenState extends State<MapScreen> {
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
 
-    return TextField(
-      controller: destinationController,
-      decoration: InputDecoration(
-         hintText: 'Your Destination',
-        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-        filled: true,
-        fillColor: Color.fromARGB(255, 226, 222, 222),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(color: Colors.grey),
+    return Column(
+      children: [
+        buildSuggestionsBloc(),
+              buildSelectedPlaceLocationBloc(),
+              buildDiretionsBloc(),
+        DropdownButtonFormField<String>(
+         
+          focusNode: locationFocusNode,
+         decoration: InputDecoration(
+             hintText: 'Your Destination',
+            hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+            filled: true,
+            fillColor: Color.fromARGB(255, 226, 222, 222),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(50),
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(50),
+              borderSide: BorderSide(color: Colors.grey),
+            ),
+          ),
+          
+           onChanged: (selectedStation) {
+          // Call the getPlacesSuggestions method with the selected station name
+          getPlacesSuggestions(selectedStation!);
+        },
+        
+          
+          items: stationNames.toSet().map<DropdownMenuItem<String>>((String value) {
+            // Split the value to get only the station name
+            String stationName = value.split('(ID:')[0].trim();
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(stationName),
+            );
+          }).toList(),
+          isExpanded: true,
+          // Allow multiple selection
+          icon: Icon(Icons.arrow_drop_down),
+          iconSize: 24,
+          elevation: 16,
+          dropdownColor: Colors.white,
+          // Clear selected station after it's selected
+          onSaved: (value) {
+            selectedStations.add(value!);
+          },
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(50),
-          borderSide: BorderSide(color: Colors.grey),
-        ),
-      ),
-      focusNode: destinationLocationFocusNode,
-      onTap: () async {
-        QuerySnapshot querySnapshot =
-            await FirebaseFirestore.instance.collection("station").get();
-
-        if (querySnapshot.docs.isNotEmpty) {
-          String stationName = querySnapshot.docs[0]['nomstation'];
-          String latitude = querySnapshot.docs[0]['latitude'];
-          String longitude = querySnapshot.docs[0]['longtude'];
-
-          destinationController.text =
-              'Station: $stationName\nLatitude: $latitude\nLongitude: $longitude';
-        } else {}
-      },
+      ],
     );
   }
-  
 
   Widget buildDiretionsBloc() {
     return BlocListener<MapsCubit, MapsState>(
@@ -283,14 +306,32 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void fetchStationNames() async {
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('station').get();
-    setState(() {
-      stationNames = snapshot.docs
-          .map((doc) => "${doc['nomstation']} (ID: ${doc.id})")
-          .toList();
+  QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection('station').get();
+  setState(() {
+    stationNames = snapshot.docs
+        .map((doc) => "${doc['nomstation']} (ID: ${doc.id})")
+        .toList();
+
+    // Add markers to the map using fetched latitude and longitude
+    snapshot.docs.forEach((doc) {
+      double lat = doc['latitude'];
+      double lng = doc['longitude'];
+      addMarker(lat, lng);
     });
-  }
+  });
+}
+
+void addMarker(double lat, double lng) {
+  Marker marker = Marker(
+    markerId: MarkerId('$lat-$lng'),
+    position: LatLng(lat, lng),
+    infoWindow: InfoWindow(title: 'Station'),
+    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+  );
+  addMarkerToMarkersAndUpdateUI(marker);
+}
+
 
   void getPolylinePoints() {
     polylinePoints = placeDirections!.polylinePoints
@@ -450,7 +491,7 @@ class _MapScreenState extends State<MapScreen> {
                 130, // Adjust this value to position the Bloc widget closer to the bottom
             left: 20,
             right: 20,
-           child: Bloc(),
+            child: Bloc(),
           ),
         ],
       ),

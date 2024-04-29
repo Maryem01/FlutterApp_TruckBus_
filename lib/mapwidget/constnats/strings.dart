@@ -25,7 +25,7 @@ const Accueil = '/AccueilAdmin';
 
 const homeParcours = "/HomeParcours";
 const addParcours = "/AddParcours";
-
+const mapSation = "/StationsMap";
 const addStation = '/AddStation';
 const homeStation = "/HomeStation";
 const AttParcours = "/Attribuer";
