@@ -48,6 +48,7 @@ class _MapScreenState extends State<MapScreen> {
   late Marker currentLocationMarker;
   late CameraPosition goToSearchedForPlace;
   late final Timer _debounce;
+   String selectedStation = '';
   List<String> stationNames = [];
   final FocusNode locationFocusNode = FocusNode();
   FocusNode destinationLocationFocusNode = FocusNode();
@@ -74,7 +75,9 @@ class _MapScreenState extends State<MapScreen> {
   List<String> selectedStations = [];
   late String time;
   late String distance;
-  
+  List<double> latitudes = [];
+List<double> longitudes = [];
+ 
 
 
   @override
@@ -82,7 +85,7 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     getMyCurrentLocation();
     _goToMyCurrentLocation();
-    fetchStationNames();
+    
   }
 
   Future<void> getMyCurrentLocation() async {
@@ -188,7 +191,41 @@ class _MapScreenState extends State<MapScreen> {
               FocusScope.of(context).requestFocus(locationFocusNode);
             },
           ),
+          
         ),
+        
+         FloatingSearchBarAction(
+          showIfOpened: false,
+          child: CircularButton(
+            icon: Icon(Icons.place,
+                color: Color.fromARGB(255, 59, 10, 150).withOpacity(0.6)),
+            onPressed: () {
+              // Set the text in both the search bar and the text field
+              controller.query = 'Current Location';
+              destinationController.text = '';
+              // Toggle visibility of additional text field
+              toggleAdditionalTextFieldVisibility();
+              FocusScope.of(context).requestFocus(destinationLocationFocusNode );
+            },
+          ),
+          
+        ),
+        DropdownButton<String>(
+        value: selectedStation,
+        onChanged: (String? newValue) {
+          setState(() {
+            selectedStation = newValue!;
+            // Call fetchStationLocation with the selected station name
+            fetchStationLocation(selectedStation);
+          });
+        },
+        items: stationNames.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+      ),
       ],
       builder: (context, transition) {
         return ClipRRect(
@@ -200,34 +237,99 @@ class _MapScreenState extends State<MapScreen> {
               buildSuggestionsBloc(),
               buildSelectedPlaceLocationBloc(),
               buildDiretionsBloc(),
-              Padding(
-                padding: const EdgeInsets.only(top: 50.0),
-                child: Visibility(
-                  visible: showAdditionalTextField,
-                  child: TextField(
-                      controller: locationController,
-                      focusNode: locationFocusNode,
-                      onChanged: (query) {
-                        getPlacesSuggestions(query);
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Your List',
-                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-                        filled: true,
-                        fillColor: Color.fromARGB(255, 226, 222, 222),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          borderSide: BorderSide(color: Colors.grey),
-                        ),
-                      )),
-                ),
-              ),
+              
+                Column(
+  children: [
+    Visibility(
+      visible: showAdditionalTextField,
+      child: TextField(
+        controller: locationController,
+        focusNode: locationFocusNode,
+        onChanged: (query) {
+          getPlacesSuggestions(query);
+        },
+        decoration: InputDecoration(
+          hintText: 'Your List',
+          hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+          contentPadding:
+              EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+          filled: true,
+          fillColor: Color.fromARGB(255, 226, 222, 222),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+        ),
+      ),
+    ),
+    // Add another TextField widget below
+   TextField(
+        controller: destinationController,
+        focusNode: destinationLocationFocusNode,
+   onTap: () async {
+  try {
+    // Fetch all documents from the "Utilisateur" collection
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('station')
+        .get();
+
+    // If there are no documents, return
+    if (querySnapshot.docs.isEmpty) {
+      return;
+    }
+
+    // Extract the first document's latitude and longitude
+    DocumentSnapshot doc = querySnapshot.docs.first;
+    double ? latitude = double.tryParse(doc['latitude'] ?? '');
+    double ? longitude = double.tryParse(doc['longtude'] ?? '');
+
+    // Move the camera to the fetched location
+    CameraPosition newPosition = CameraPosition(
+      bearing: 0.0,
+      tilt: 0.0,
+      target: LatLng(latitude!, longitude!),
+      zoom: 13,
+    );
+
+    // Animate the map camera to the new position
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(newPosition));
+
+    // Add a marker for the fetched location
+    addMarker(latitude, longitude);
+  } catch (error) {
+    print("Error fetching destination locations: $error");
+    // Handle any errors that occur during fetching
+  }
+},
+
+
+
+        decoration: InputDecoration(
+          hintText: 'Your List',
+          hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+          contentPadding:
+              EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+          filled: true,
+          fillColor: Color.fromARGB(255, 226, 222, 222),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(50),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+        ),
+      ),
+  ],
+),
+
+            
             ],
           ),
         );
@@ -235,62 +337,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget Bloc() {
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
-
-    return Column(
-      children: [
-        buildSuggestionsBloc(),
-              buildSelectedPlaceLocationBloc(),
-              buildDiretionsBloc(),
-        DropdownButtonFormField<String>(
-         
-          focusNode: locationFocusNode,
-         decoration: InputDecoration(
-             hintText: 'Your Destination',
-            hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-            filled: true,
-            fillColor: Color.fromARGB(255, 226, 222, 222),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(color: Colors.grey),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(50),
-              borderSide: BorderSide(color: Colors.grey),
-            ),
-          ),
-          
-           onChanged: (selectedStation) {
-          // Call the getPlacesSuggestions method with the selected station name
-          getPlacesSuggestions(selectedStation!);
-        },
-        
-          
-          items: stationNames.toSet().map<DropdownMenuItem<String>>((String value) {
-            // Split the value to get only the station name
-            String stationName = value.split('(ID:')[0].trim();
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(stationName),
-            );
-          }).toList(),
-          isExpanded: true,
-          // Allow multiple selection
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 24,
-          elevation: 16,
-          dropdownColor: Colors.white,
-          // Clear selected station after it's selected
-          onSaved: (value) {
-            selectedStations.add(value!);
-          },
-        ),
-      ],
-    );
-  }
+  
 
   Widget buildDiretionsBloc() {
     return BlocListener<MapsCubit, MapsState>(
@@ -305,7 +352,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void fetchStationNames() async {
+Future<void> fetchStationLocation(String selectedStation)  async {
   QuerySnapshot snapshot =
       await FirebaseFirestore.instance.collection('station').get();
   setState(() {
@@ -314,11 +361,17 @@ class _MapScreenState extends State<MapScreen> {
         .toList();
 
     // Add markers to the map using fetched latitude and longitude
-    snapshot.docs.forEach((doc) {
-      double lat = doc['latitude'];
-      double lng = doc['longitude'];
-      addMarker(lat, lng);
-    });
+    snapshot.docs.forEach((doc){
+  double? latitude = double.tryParse(doc['latitude'] ?? '');
+  double? longitude = double.tryParse(doc['longitude'] ?? '');
+
+  if (latitude != null && longitude != null) {
+    latitudes.add(latitude);
+    longitudes.add(longitude);
+  } else {
+    print("Invalid latitude or longitude in document: ${doc.id}");
+  }
+});
   });
 }
 
@@ -486,13 +539,7 @@ void addMarker(double lat, double lng) {
                   placeDirections: placeDirections,
                 )
               : Container(),
-          Positioned(
-            top:
-                130, // Adjust this value to position the Bloc widget closer to the bottom
-            left: 20,
-            right: 20,
-            child: Bloc(),
-          ),
+         
         ],
       ),
       floatingActionButton: Container(
